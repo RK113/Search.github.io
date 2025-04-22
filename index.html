@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        /* Styled Search Input */
+        #searchInput {
+            width: 90%;
+            max-width: 400px;
+            padding: 10px 14px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        #searchInput:focus {
+            border-color: #28a745;
+            outline: none;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+        }
+
+        /* Styled Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table thead {
+            background-color: #e9f5ec;
+            color: #2f6635;
+        }
+
+        table th, table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 15px;
+        }
+
+        table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* Larger Checkboxes */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            transform: scale(1.2);
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* Input Fields */
+        input[type="text"], input[type="number"] {
+            padding: 6px;
+            margin: 4px 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 6px 12px;
+            margin-left: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Selected User Section */
+        .selected-box {
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+
+        .selected-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+        }
+
+        /* Custom Confirm Popup */
+        #confirmPopup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #confirmPopup > div {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        #confirmPopup p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Hide second column (Type) */
+        #userTable th:nth-child(2), #userTable td:nth-child(2) {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h3>Search Product</h3>
+<input type="text" id="searchInput" onkeyup="filterTable()" onfocus="this.select()" placeholder="Search by name...">
+
+<table id="userTable">
+    <thead>
+        <tr>
+            <th>Select</th>
+            <th>Division</th> <!-- This column will be hidden -->
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><input type="checkbox" onchange="toggleRow(this)" data-id="1" data-name="Cugli Gm-2"></td>
+            <td>Lexus</td>
+            <td class="user-name">Cugli Gm-2</td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" onchange="toggleRow(this)" data-id="2" data-name="Cugli Gm-1"></td>
+            <td>Lexus</td>
+            <td class="user-name">Cugli Gm-1</td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" onchange="toggleRow(this)" data-id="3" data-name="lacklay lb"></td>
+            <td>Lexus</td>
+            <td class="user-name">lacklay lb</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Product list</h3>
+<div id="selectedContainer" class="selected-box"></div>
+
+<br /><button onclick="shareData()">Share via WhatsApp</button>
+
+<!-- Custom Delete Confirmation Popup -->
+<div id="confirmPopup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:20px 30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.2); max-width:90%; text-align:center;">
+        <p id="confirmMessage" style="font-size:16px; margin-bottom:20px;">Are you sure?</p>
+        <button onclick="confirmDelete()" style="background:#dc3545;">Yes, Delete</button>
+        <button onclick="closePopup()" style="background:#6c757d; margin-left:10px;">Cancel</button>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#userTable tbody tr");
+
+    rows.forEach(row => {
+        const name = row.cells[2].textContent.toLowerCase(); // Only Name column
+        row.style.display = name.startsWith(query) ? "" : "none"; // Only match from beginning
+    });
+}
+
+document.querySelectorAll('.user-name').forEach(el => {
+    el.addEventListener('click', function () {
+        const checkbox = this.closest('tr').querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = !checkbox.checked;
+
+        // Trigger any related events manually, like selection logic
+        checkbox.dispatchEvent(new Event('change'));
+    });
+});
+
+function toggleRow(checkbox) {
+    const id = checkbox.dataset.id;
+    const name = checkbox.dataset.name;
+    const container = document.getElementById("selectedContainer");
+    const existing = document.getElementById("selected_" + id);
+
+    if (checkbox.checked) {
+        if (!existing) {
+            const div = document.createElement("div");
+            div.className = "selected-item";
+            div.id = "selected_" + id;
+            div.innerHTML = `
+                <strong>${name}</strong>
+                <input type="text" id="text_${id}" placeholder="Batch No." />
+                <input type="number" id="num1_${id}" placeholder="Quantity" />
+                <input type="number" id="num2_${id}" placeholder="Plus" />
+                <button onclick="sumValues(${id})">+</button>
+                <button class="delete-btn" onclick="deleteUser(${id})">Delete</button>
+            `;
+            container.appendChild(div);
+        }
+    } else {
+        if (existing) existing.remove();
+    }
+}
+
+function sumValues(id) {
+    const num1El = document.getElementById("num1_" + id);
+    const num2El = document.getElementById("num2_" + id);
+    const val1 = parseFloat(num1El.value) || 0;
+    const val2 = parseFloat(num2El.value) || 0;
+    num1El.value = val1 + val2;
+    num2El.value = "";
+}
+
+let deleteTargetId = null;
+
+function deleteUser(id) {
+    deleteTargetId = id;
+
+    const checkbox = document.querySelector(`#userTable input[data-id="${id}"]`);
+    const name = checkbox ? checkbox.dataset.name : "this user";
+
+    document.getElementById("confirmMessage").textContent = `Are you sure you want to delete "${name}" from selection?`;
+    document.getElementById("confirmPopup").style.display = "flex";
+}
+
+function confirmDelete() {
+    if (deleteTargetId !== null) {
+        const row = document.getElementById("selected_" + deleteTargetId);
+        if (row) row.remove();
+
+        const checkbox = document.querySelector(`#userTable input[data-id="${deleteTargetId}"]`);
+        if (checkbox) checkbox.checked = false;
+    }
+    closePopup();
+}
+
+function closePopup() {
+    document.getElementById("confirmPopup").style.display = "none";
+    deleteTargetId = null;
+}
+
+function shareData() {
+    const data = [];
+    const selected = document.querySelectorAll(".selected-item");
+
+    selected.forEach(div => {
+        const id = div.id.split("_")[1];
+        const name = document.querySelector(`#userTable input[data-id="${id}"]`).dataset.name;
+        const type = document.querySelector(`#userTable tr:nth-child(${id}) td:nth-child(2)`).textContent; // Get type
+        const value = document.getElementById("num1_" + id).value;
+        const note = document.getElementById("text_" + id).value;
+        data.push({ id, name, type, value, note });
+    });
+
+    if (data.length === 0) {
+        alert("No data selected to share.");
+        return;
+    }
+
+    let message = "";
+    let num = 1;
+    data.forEach(item => {
+        message += num +"."+ ` ${item.type} - ${item.name} - ${item.note} - ${item.value}\n`;
+        num = num + 1;
+    });
+
+    const whatsappUrl = "https://wa.me/+919510591045?text=" + encodeURIComponent(message);
+    window.open(whatsappUrl, "_blank");
+}
+</script>
+
+</body>
+</html>
